@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dedaub-Style Smart Contract Analyzer</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0b0e16;
+        color: #f5f7ff;
+      }
+
+      header {
+        background: linear-gradient(135deg, #4c6fff, #9d3fff);
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      }
+
+      header p {
+        max-width: 720px;
+        margin: 1rem auto 0;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1024px;
+        margin: -2rem auto 0;
+        padding: 0 1.5rem 4rem;
+      }
+
+      .card {
+        background: rgba(16, 20, 34, 0.92);
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-top: 2rem;
+        box-shadow: 0 15px 45px rgba(21, 30, 63, 0.4);
+        border: 1px solid rgba(99, 123, 255, 0.25);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 1.6rem;
+      }
+
+      .card p {
+        line-height: 1.6;
+        color: #c7cbed;
+      }
+
+      .card ul {
+        padding-left: 1.25rem;
+      }
+
+      .card li {
+        margin: 0.5rem 0;
+      }
+
+      pre {
+        background: rgba(9, 12, 24, 0.9);
+        border-radius: 12px;
+        padding: 1rem;
+        overflow-x: auto;
+        border: 1px solid rgba(130, 170, 255, 0.2);
+      }
+
+      code {
+        font-family: "Fira Code", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9rem;
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: #6f76a8;
+        font-size: 0.9rem;
+      }
+
+      a {
+        color: #82aaff;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Dedaub-Style Smart Contract Analyzer</h1>
+      <p>
+        Combine automated Dedaub-inspired heuristics with a proven manual audit checklist.
+        Submit a contract address and Solidity source to the JSON endpoint to produce a
+        risk-ranked report, then work through the checklist below to finalize your review.
+      </p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Analyzer coverage</h2>
+        <p>
+          The built-in analyzer emulates the approach popularized by Dedaub&rsquo;s security
+          research team. It triangulates the following dimensions before issuing a risk score:
+        </p>
+        <ul>
+{{ANALYZER_FEATURES}}
+        </ul>
+        <p>
+          Use the analyzer as an always-on first pass. Any surfaced findings should be
+          triaged manually, and a clean result still warrants peer review and monitoring.
+        </p>
+      </section>
+      <section class="card">
+        <h2>API example</h2>
+        <p>
+          Send a <code>POST</code> request to <code>/api/analyze</code> with the Solidity
+          source to receive a Dedaub-style JSON report. The payload format mirrors what you
+          would submit to commercial tooling while keeping everything self-hosted.
+        </p>
+        <pre><code>{{ANALYZER_SAMPLE_PAYLOAD}}</code></pre>
+        <p>
+          <strong>Quick test:</strong>
+          <code>curl -s -X POST http://127.0.0.1:8000/api/analyze -H "Content-Type: application/json" -d @payload.json</code>
+        </p>
+      </section>
+{{CARDS}}
+    </main>
+    <footer>
+      <p>
+        Checklist data remains available at <a href="/api/checklist">/api/checklist</a>
+        and analyzer results at <code>/api/analyze</code>.
+      </p>
+    </footer>
+  </body>
+</html>
