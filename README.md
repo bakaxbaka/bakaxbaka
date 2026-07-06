@@ -1,10 +1,8 @@
-- 👋 Hi, I’m @bakaxbaka
-- 👀 I’m interested in cute things
-- 🌱 I’m currently learning penetration and stress testing/cryptography/security solutions
-- 💞️ I’m looking to collaborate on baka things
-- 📫 How to reach me @bakaxxbaka
-- 😄 Pronouns: baka
-- ⚡ Fun fact: im not a girl
+- Hi, I'm @bakaxbaka
+- Interested in cryptography, mathematics, security research, and systems programming.
+- Currently learning penetration testing, stress testing, advanced cryptography, and secure system design.
+- Looking to collaborate on open-source security and cryptography projects.
+- Reach me: @bakaxxbaka
 
 <!---
 bakaxbaka/bakaxbaka is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
