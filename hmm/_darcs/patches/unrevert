@@ -1,0 +1,99 @@
+
+New patches:
+
+[unrevert
+anonymous**20061103085655] 
+<
+> {
+hunk ./Hmm.hs 6
+ 	,Database
+ 	,mmParseFromFile,mmParseFromString
+ 	,mmVerifiesProof,mmVerifiesLabel,mmVerifiesDatabase,mmVerifiesAll
++
++	,findStatement
++
++	,ProofTree
++	,mmComputeProofTree
+ 	)
+ 
+ where
+}
+
+Context:
+
+[HghCore.lhs: refactoring: made Substitution into a proper data type, so that we have a bit more typechecking.
+Marnix Klooster <marnix.klooster@gmail.com>**20060604071010] 
+[HghCore.lhs: reverse the order of RuleApp arguments, to make Proof literals look just like Ghilbert proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603163227] 
+[HghCore: added one more test case
+Marnix Klooster <marnix.klooster@gmail.com>**20060603102523] 
+[HghCore.lhs refactoring: introduced DVRSet, and constructor functions now start with 'mk' prefix.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603101116] 
+[HghCore.lhs refactoring: introduced VarName and ConstName types.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603100103] 
+[HghCore refactoring: substMerge->substConcat, and use this in one more place.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603093959] 
+[Added date+time to generated .xhtml.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603075014] 
+[HghCore.lhs: added support for using 'rule local variables', i.e., 'conclusion-only variables'.
+Marnix Klooster <marnix.klooster@gmail.com>**20060603074504] 
+[HghCore.lhs: slight refactoring of substitutions.
+Marnix Klooster <marnix.klooster@gmail.com>**20060602050234] 
+[HghCore.lhs: minor textual clarification.
+Marnix Klooster <marnix.klooster@gmail.com>**20060602050109] 
+[HghCore.lhs: transformed the "module" declaration into an Overview section.
+Marnix Klooster <marnix.klooster@gmail.com>**20060602045903] 
+[Switch from voidspace.css (which I didn't like for this) to docutils' default.css.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601203923] 
+[Made ghc's -Wall flag easily switchable, to help during development.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601203638] 
+[HghCore.lhs: Implemented Proof and Derivation, and the initial version of interpretProof.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601203419] 
+[HghCore.lhs: expanded the introductory text.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601202708] 
+[HghCore.lhs: now switching to voidspace.css formatting, just as an experiment.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601053554] 
+[Remove a generated .xhtml file if rst2html.py failed; this forces it to be remade by 'make'.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601051544] 
+[Added the Proof datatype.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601051440] 
+[Typgraphical: HghCore.lhs now uses more RST markup, mostly for identifiers mentioned in normal text.
+Marnix Klooster <marnix.klooster@gmail.com>**20060601051231] 
+[HghCore.lhs: mark not-yet-used code using < instead of space-then->.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531202027] 
+[Made HghCore.lhs compile, and added a very brief initial test for this module.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531195051] 
+[HmmTest.hs: make test binary have non-zero exit code, to help Makefile.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531194741] 
+[Typesetting title of HghCore.lhs.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531194229] 
+[Added support for generating XHTML from literate Haskell (using reStructuredText tools from the docutils project).
+Marnix Klooster <marnix.klooster@gmail.com>**20060531132345] 
+[Fixed HghCore.lhs so that it conforms to the reStructuredText standard.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531130226] 
+[Initial version of Ghilbert core proof module.
+Marnix Klooster <marnix.klooster@gmail.com>**20060531102950] 
+[Proof pretty printing: minor renamings.
+Marnix Klooster <marnix.klooster@gmail.com>**20060529165350] 
+[hmmprint: now taking label from command line
+Marnix Klooster <marnix.klooster@gmail.com>**20060529093634] 
+[Updated year in copyright notice.
+Marnix Klooster <marnix.klooster@gmail.com>**20060529052620] 
+[First code for 'hmmprint', for pretty-printing proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20060529052121] 
+[Added helper function isDollarE; necessary for pretty-printing proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20060529052039] 
+[Generalized mmComputeTheorem' to mmComputeSubtheorems; necessary for pretty-printing proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20060529051940] 
+[Added mmComputeProofTree function (and refactored mmComputeTheorem to use it).
+Marnix Klooster <marnix.klooster@gmail.com>**20051028140332] 
+[Refactoring: moved getHypotheses from foldProof' to combine (in mmComputeTheorem).
+Marnix Klooster <marnix.klooster@gmail.com>**20051028123918] 
+[Refactoring: Database is no longer necessary when verifying a proof.
+Marnix Klooster <marnix.klooster@gmail.com>**20051028105524] 
+[README: Starting post-0.2 development.
+Marnix Klooster <marnix.klooster@gmail.com>**20051028103243] 
+[TAG 0.2
+Marnix Klooster <marnix.klooster@gmail.com>**20051028102927] 
+Patch bundle hash:
+af0f82f5e830f1b33a4cf39bf7db25f9979fff76

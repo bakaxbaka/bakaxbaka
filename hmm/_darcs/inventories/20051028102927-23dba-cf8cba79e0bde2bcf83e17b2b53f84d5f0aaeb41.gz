@@ -1,0 +1,150 @@
+[Initial version which can parse whitespace and comments, resulting in empty Database.
+Marnix Klooster <marnix.klooster@gmail.com>**20050930184545] 
+[Added support for parsing constants.
+Marnix Klooster <marnix.klooster@gmail.com>**20050930193426] 
+[Some refactoring.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001055210] 
+[Refactoring: split 'database' into 'context' and 'database'.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001063245] 
+[Added support for $v statements.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001071247] 
+[Added support for $f statements.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001073731] 
+[Added support for $e, $a, and non-compressed $p statements.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001080929] 
+[Added support for ${ ... $} (and refactored such that every parse function just returns the statements that it parsed, rather than also the statements that came before).
+Marnix Klooster <marnix.klooster@gmail.com>**20051001101746] 
+[Simplification: the 'database' argument to the parsers was not used.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001102307] 
+[Added support for parsing from a file.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001104534] 
+[Refactoring, to prepare for Axiom and Theorem storing their mandatory hypotheses.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001111156] 
+[Simplification: the 'database' argument to the parsers was not used.
+Marnix Klooster <marnix.klooster@gmail.com>*-20051001102307] 
+[Added mandatory $e hypotheses to Axiom.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001113017] 
+[Changed Database representation: active and inactive in one list, to maintain order of mandatory hypotheses.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001133220] 
+[Added mandatory $f hypotheses for Axiom.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001141157] 
+[Added mandatory $e and $f hypotheses to Theorem.
+Marnix Klooster <marnix.klooster@gmail.com>**20051001142412] 
+[Added -Wall -Werror and fixed all warnings.
+Marnix Klooster <marnix.klooster@gmail.com>**20051002052342] 
+[Simplified Database/Statement datatypes.
+Marnix Klooster <marnix.klooster@gmail.com>**20051002052923] 
+[Added support for verifying the proof of a theorem.
+Marnix Klooster <marnix.klooster@gmail.com>**20051003044229] 
+[Created rudimentary version of hmmverify.
+Marnix Klooster <marnix.klooster@gmail.com>**20051003051004] 
+[Fix Makefile for use on Unix.
+Marnix Klooster <marnix.klooster@gmail.com>**20051003173831] 
+[Updated demo0.mm from recent metamath tar ball
+Marnix Klooster <marnix.klooster@gmail.com>**20051003070513] 
+[Added code that reads $d statements (but ignores them during verification for now)
+Marnix Klooster <marnix.klooster@gmail.com>**20051003070607] 
+[Added -O flag.
+Marnix Klooster <marnix.klooster@gmail.com>**20051003150105] 
+[Corrected (restricted) the characters allowed in a label.
+Marnix Klooster <marnix.klooster@gmail.com>**20051004061348] 
+[An uncompressed proof is a sequence of labels (not identifiers); a compressed proof is not yet supported.
+Marnix Klooster <marnix.klooster@gmail.com>**20051004061615] 
+[Refactoring to remove code duplication.
+Marnix Klooster <marnix.klooster@gmail.com>**20051004121530] 
+[Refactoring: created separate 'computeStack' function, for later use in parsing compressed proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20051004190821] 
+[Fixed bug: mmParseFromFile did not report file name on parse error.
+Marnix Klooster <marnix.klooster@gmail.com>**20051007053235] 
+[Added support for compressed proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20051007053313] 
+[Added type synonyms for readability: Proof, Expression, Label.
+Marnix Klooster <marnix.klooster@gmail.com>**20051007054358] 
+[Added set-part.mm, which was used in the tests.
+Marnix Klooster <marnix.klooster@gmail.com>**20051007054453] 
+[Added checking of $d statements; improved the verifier output; fixed parsing of constants/variables/restrictions to improve performance.
+Marnix Klooster <marnix.klooster@gmail.com>**20051008194549] 
+[Added TODO list.
+Marnix Klooster <marnix.klooster@gmail.com>**20051009110632] 
+[Refactoring: renamed 'restrictions' to 'disjoints'.
+Marnix Klooster <marnix.klooster@gmail.com>**20051009110700] 
+[Added two TODO list items.
+Marnix Klooster <marnix.klooster@gmail.com>**20051010164039] 
+[Fixed hiding of $d within ${ ... $} (and fixed tests for $d statements).
+Marnix Klooster <marnix.klooster@gmail.com>**20051010170011] 
+[Improved the error output of the verifier.
+Marnix Klooster <marnix.klooster@gmail.com>**20051012044106] 
+[Fixed bug in parsing compressed proofs (forgot to pop the stack of subproofs).
+Marnix Klooster <marnix.klooster@gmail.com>**20051012061758] 
+[Removed $d checking, because the implementation was plain wrong.
+Marnix Klooster <marnix.klooster@gmail.com>**20051012072713] 
+[Now using Context as the state of an MMParser (code readability).
+Marnix Klooster <marnix.klooster@gmail.com>**20051012131607] 
+[Fixed bug: all compressed numbers from UA onwards were parsed incorrectly.
+Marnix Klooster <marnix.klooster@gmail.com>**20051013053218] 
+[Improved performance of tests, by parsing every test .mm file just once.
+Marnix Klooster <marnix.klooster@gmail.com>**20051013054133] 
+[Added TODO list item on supporting '?' in proofs.
+Marnix Klooster <marnix.klooster@gmail.com>**20051013133759] 
+[Implemented workaround for bug in official metamath implementation: UVA is now parsed as 121, instead of UUA.
+Marnix Klooster <marnix.klooster@gmail.com>**20051013135743] 
+[Rewrote workaround for Metamath bug, so that both erroneous and correct compressed proofs can be parsed.
+Marnix Klooster <marnix.klooster@gmail.com>**20051014122618] 
+[Minor rewrite: context only saved really when necessary.
+Marnix Klooster <marnix.klooster@gmail.com>**20051015102604] 
+[Implemented checking of $d statements (slightly looser than the official Metamath program, but still sound).
+Marnix Klooster <marnix.klooster@gmail.com>**20051015103542] 
+[Separated module Hmm in an implementation (HmmImpl) which is tested, and interface (Hmm) which is used in the verifier.
+Marnix Klooster <marnix.klooster@gmail.com>**20051016062116] 
+[Added performance ideas to TODO list.
+Marnix Klooster <marnix.klooster@gmail.com>**20051016192615] 
+[Added idea to TODO list entry.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017042449] 
+[Added README file prior to public distribution.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017051310] 
+[Refactoring: replaced Disjoints by DVRSet, based on Data.Set, to make the juggling of disjoint variable restrictions clearer.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017051511] 
+[Explained longer-term goal of Hmm.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017051859] 
+[Added note on running Hmm.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017051941] 
+[Added darcs' David Roundy to Acknowledgements list.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017121655] 
+[Performance (minor): when parsing a compressed proof, keep the subproof stack in top-first order, instead of top-last.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017192721] 
+[Comment change: bug in Metamath has been fixed (since version 0.07.6).
+Marnix Klooster <marnix.klooster@gmail.com>**20051017193429] 
+[Re-ordered TODO list, and added 'proof tree' functionality to it.
+Marnix Klooster <marnix.klooster@gmail.com>**20051017193927] 
+[Refactoring: separated 'active' flag from the Statement proper, to prepare for replacing Label by Statement in Axiom and Theorem.
+Marnix Klooster <marnix.klooster@gmail.com>**20051018192749] 
+[Refactoring (and hopefully performance): now Axiom and Theorem store Statement instead of Label, to minimize lookups.
+Marnix Klooster <marnix.klooster@gmail.com>**20051018194858] 
+[Added instructions for getting version 0.1, as opposed to the latest and greatest version.
+Marnix Klooster <marnix.klooster@gmail.com>**20051019051530] 
+[TAG 0.1
+Marnix Klooster <marnix.klooster@gmail.com>**20051019051950] 
+[Removed unused function findExpression.
+Marnix Klooster <marnix.klooster@gmail.com>**20051019052809] 
+[Internal: added sitecopy support.
+Marnix Klooster <marnix.klooster@gmail.com>**20051019052955] 
+[Now Proof is [Statement] instead of [Label], to minimize the number of lookups during verification
+Marnix Klooster <marnix.klooster@gmail.com>**20051020191946] 
+[README: Indicate that this repository contains post-0.1 development.
+Marnix Klooster <marnix.klooster@gmail.com>**20051020192433] 
+[Nicer URL for published repository.
+Marnix Klooster <marnix.klooster@gmail.com>**20051021200200] 
+[Refactoring (readability): minor renaming (of dvrMapSubst to dvrApplySubstitution).
+Marnix Klooster <marnix.klooster@gmail.com>**20051021200410] 
+[Minor: typo in test case.
+Marnix Klooster <marnix.klooster@gmail.com>**20051024135433] 
+[Test coverage: now also verifying all of set-part4.mm
+Marnix Klooster <marnix.klooster@gmail.com>**20051024135550] 
+[Performance: now labels in a proof are looked up in a Data.Map of active statements that is stored in the context.
+Marnix Klooster <marnix.klooster@gmail.com>**20051024141819] 
+[Performance: now active hypotheses are stored and looked up in the Context instead of passing around a Database.
+Marnix Klooster <marnix.klooster@gmail.com>**20051024145441] 
+[Refactoring: make code for uncompressing a proof simpler and more readable.
+Marnix Klooster <marnix.klooster@gmail.com>**20051028092759] 
+[Added version 0.2 release notes, prior to tagging 0.2.
+Marnix Klooster <marnix.klooster@gmail.com>**20051028102819] 

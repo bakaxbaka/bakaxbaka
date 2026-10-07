@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.7: http://docutils.sourceforge.net/" />
+<title>A Haskell module for sound Ghilbert-style proofs</title>
+<meta name="author" content="Marnix Klooster &lt;marnix.klooster&#64;gmail.com&gt;" />
+<meta name="copyright" content="GPL version 2 or later" />
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="a-haskell-module-for-sound-ghilbert-style-proofs">
+<h1 class="title">A Haskell module for sound Ghilbert-style proofs</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Marnix Klooster &lt;<a class="reference" href="mailto:marnix.klooster&#64;gmail.com">marnix.klooster&#64;gmail.com</a>&gt;</td></tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>GPL version 2 or later</td></tr>
+<tr class="field"><th class="docinfo-name">Note:</th><td class="field-body">This is a work in progress.  Correctness and completeness not guaranteed.
+You have been warned!</td>
+</tr>
+</tbody>
+</table>
+<p>(This document is usually available in two formats: <a class="reference" href="HghCore.xhtml">XHTML</a>
+and <a class="reference" href="HghCore.lhs">literate Haskell</a>.)</p>
+<div class="section" id="introduction">
+<h1><a name="introduction">Introduction</a></h1>
+<p>Here is the suggested interface for a small Haskell module that implements the
+Ghilbert-based core proof language, which I suggested to Raph Levien (personal
+e-mail, 30 May 2006).
+This module could be the core of a Ghilbert verifier:</p>
+<pre class="literal-block">
+&gt; module HghCore
+</pre>
+<p>Some understanding of Metamath and/or Ghilbert is useful, but this document is
+intended to be reasonably self-contained.</p>
+<p>The code in this document has been tested under GHC 6.4.2, but could very well
+work with other Haskell systems as well.  To actually make this document work
+like a 'literate Haskell module', the order of this document is sometimes
+forced a bit.</p>
+</div>
+<div class="section" id="overview">
+<h1><a name="overview">Overview</a></h1>
+<p>This module provides an encapsulated data type</p>
+<pre class="literal-block">
+&gt;       (Derivation
+</pre>
+<p>with accessors</p>
+<pre class="literal-block">
+&gt;       ,sourceRules, targetRule
+</pre>
+<p>together with a very limited way of creating values of this type:</p>
+<pre class="literal-block">
+&gt;       ,interpretProof
+</pre>
+<p>This function takes a</p>
+<pre class="literal-block">
+&gt;       ,Proof(Hypothesis, RuleApp)
+</pre>
+<p>which is essentially the same as a Ghilbert proof.  <tt class="docutils literal"><span class="pre">interpretProof</span></tt> then
+computes the resulting 'thm' (the 'target inference rule' of the <tt class="docutils literal"><span class="pre">Derivation</span></tt>).
+What Ghilbert calls a 'thm' or a 'stmt', we call an</p>
+<pre class="literal-block">
+&gt;       ,InferenceRule, mkInferenceRule, ruleDVRs, ruleHypotheses, ruleConclusion
+</pre>
+<p><tt class="docutils literal"><span class="pre">interpretProof</span></tt> also keeps track of all inference rules that are used by the proof (the
+'source inference rules' of the <tt class="docutils literal"><span class="pre">Derivation</span></tt>).</p>
+<p>Part of an <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> is a set of 'disjoint variable restrictions':</p>
+<pre class="literal-block">
+&gt;       ,DVRSet, mkDVRSet
+</pre>
+<p>All this is based on LISP-like expressions, just like GHilbert:</p>
+<pre class="literal-block">
+&gt;       ,Expression(Var, App)
+&gt;       )
+&gt; where
+</pre>
+<p>We will need some auxiliary functionality from standard modules:</p>
+<pre class="literal-block">
+&gt; import Data.List(sort, nub, (\\))
+</pre>
+</div>
+<div class="section" id="expressions-and-inference-rules">
+<h1><a name="expressions-and-inference-rules">Expressions and inference rules</a></h1>
+<p>All mathematical expressions are constructed from variables and operators
+(=constants):</p>
+<pre class="literal-block">
+&gt; data Expression = Var VarName | App ConstName [Expression]
+&gt;       deriving (Eq, Show)
+</pre>
+<p>with</p>
+<pre class="literal-block">
+&gt; type VarName = String
+&gt; type ConstName = String
+</pre>
+<p>(TODO: Make these into real datatypes, so that we have real typechecking.)</p>
+<p>An <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> represents how to get from source expressions (hypotheses)
+to a target expression (the conclusion).</p>
+<pre class="literal-block">
+&gt; data InferenceRule = InferenceRule
+&gt;       {ruleDVRs :: DVRSet
+&gt;       ,ruleHypotheses :: [Expression]
+&gt;       ,ruleConclusion :: Expression
+&gt;       }
+&gt;       deriving (Eq, Show)
+</pre>
+<p>(TODO: Create a custom Show instance, so that we more understandable output
+during debugging.)</p>
+<p>Two <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> objects are equal (under <tt class="docutils literal"><span class="pre">Eq</span></tt>) iff they have the same
+DVRSet, the same hypotheses (in the same order, including potential
+duplicates), and the same conclusion.</p>
+<p>Note that the constructor for this data type is not exported, so that we can
+choose an optimal data structure for performance.  Therefore we need a
+very simple constructor function:</p>
+<pre class="literal-block">
+&gt; mkInferenceRule :: DVRSet -&gt; [Expression] -&gt; Expression
+&gt;                       -&gt; InferenceRule
+&gt; mkInferenceRule dvrSet hyps concl = InferenceRule dvrSet hyps concl
+</pre>
+<p>Here we use the data type <tt class="docutils literal"><span class="pre">DVRSet</span></tt>, for which we only export the type</p>
+<pre class="literal-block">
+&gt; data DVRSet = DVRSet [(VarName, VarName)]
+&gt;       deriving (Eq, Show)
+</pre>
+<p>To create a <tt class="docutils literal"><span class="pre">DVRSet</span></tt> the constructor function <tt class="docutils literal"><span class="pre">mkDVRSet</span></tt> is used.  This
+function makes sure that two DVRSets are equal (under <tt class="docutils literal"><span class="pre">Eq</span></tt>) if they have the
+same restrictions, where duplicates are ignored, and (&quot;x&quot;,&quot;y&quot;) is the same as
+(&quot;y&quot;,&quot;x&quot;).  It does that by keeeping the DVRs in an <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> in
+canonical order, with duplicates removed, and each pair ordered:</p>
+<pre class="literal-block">
+&gt; mkDVRSet :: [(VarName, VarName)] -&gt; DVRSet
+&gt; mkDVRSet = DVRSet . nub . sort . Prelude.map sortPair
+&gt;       where sortPair (p, q)
+&gt;               | p &lt;= q = (p, q)
+&gt;               | True = (q, p)
+</pre>
+<p>Because of the canonical representation of an <tt class="docutils literal"><span class="pre">InferenceRule</span></tt>, the
+implementation of <tt class="docutils literal"><span class="pre">Eq</span> <span class="pre">InferenceRule</span></tt> is as simple as &quot;<tt class="docutils literal"><span class="pre">deriving</span> <span class="pre">Eq</span></tt>&quot; (as is
+done above).</p>
+</div>
+<div class="section" id="proofs">
+<h1><a name="proofs">Proofs</a></h1>
+<p>Now on to proofs:</p>
+<pre class="literal-block">
+&gt; data Proof
+&gt;       = Hypothesis Expression
+&gt;       | RuleApp [Proof] [Expression] InferenceRule
+&gt;       deriving (Eq, Show)
+</pre>
+<p>TODO: Explain what the components of a RuleApp mean, and what it means for a
+RuleApp to be consistent.</p>
+<p>Design Issue. As written, a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> requires knowledge of the order of the
+hypotheses of an <tt class="docutils literal"><span class="pre">InferenceRule</span></tt>. However, (meta-)logically
+<tt class="docutils literal"><span class="pre">InferenceRule</span></tt> values that only differ in their order of hypotheses are
+equivalent.  Therefore we have four options.</p>
+<blockquote>
+<ul class="simple">
+<li>We specify the order of the result of <tt class="docutils literal"><span class="pre">ruleHypotheses</span></tt> to be the same as
+the creation order.  We declare an <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> with a different order
+of hypotheses to be different (under <tt class="docutils literal"><span class="pre">Eq</span></tt>).  (We introduce a new
+equivalence <tt class="docutils literal"><span class="pre">(&lt;==&gt;)</span></tt> on <tt class="docutils literal"><span class="pre">InferenceRule</span></tt>, and by extension on <tt class="docutils literal"><span class="pre">Proof</span></tt>
+and <tt class="docutils literal"><span class="pre">Derivation</span></tt> (see below).) In a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> the proofs must be in
+creation order.</li>
+<li>We specify the order of the result of <tt class="docutils literal"><span class="pre">ruleHypotheses</span></tt> to be the same as
+the creation order.  Two <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> objects can have different
+<tt class="docutils literal"><span class="pre">ruleHypothese</span></tt> results, and still be the same (under <tt class="docutils literal"><span class="pre">Eq</span></tt>).  (This
+seems to be inconsistent.)  In a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> the proofs must be in creation
+order.</li>
+<li>We specify the order of the result of <tt class="docutils literal"><span class="pre">ruleHypotheses</span></tt> to be some
+arbitrary (but consistent) order.  In a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> the proofs must be
+in this same order.</li>
+<li>Instead of <tt class="docutils literal"><span class="pre">[Proof]</span></tt>, a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> uses <tt class="docutils literal"><span class="pre">[(Expression,</span> <span class="pre">Proof)]</span></tt>, where
+each <tt class="docutils literal"><span class="pre">Expression</span></tt> is the hypothesis that is proven by the corresponding
+sub-<tt class="docutils literal"><span class="pre">Proof</span></tt>.  (Or we could even have it use a <tt class="docutils literal"><span class="pre">(Expression</span> <span class="pre">-&gt;</span> <span class="pre">Proof)</span></tt>,
+but that seems a bit silly.)</li>
+</ul>
+</blockquote>
+<p>It seems each of these has its disadvantages.  It seems the first option is the
+most consistent, while still making this module easy to use for a Ghilbert
+verifier.  That's why I went with that option.  (End of Design Issue.)</p>
+</div>
+<div class="section" id="deriving-inference-rules-derivations">
+<h1><a name="deriving-inference-rules-derivations">Deriving inference rules: Derivations</a></h1>
+<p>Now we come to the heart of the matter: the <tt class="docutils literal"><span class="pre">Derivation</span></tt>.   A <tt class="docutils literal"><span class="pre">Derivation</span></tt>
+says: if these inference rules (the 'source rules') hold, then this inference
+rule (the 'target rule') holds as well.</p>
+<pre class="literal-block">
+&gt; data Derivation = Derivation
+&gt;       {sourceRules :: [InferenceRule]
+&gt;       ,targetRule :: InferenceRule
+&gt;       }
+&gt;       deriving (Show, Eq) --TODO: implement a correct Eq
+</pre>
+<p>We do not export the constructors for the <tt class="docutils literal"><span class="pre">Derivation</span></tt> datatype, because we
+require that only 'true' derivations can be constructed by clients of this
+module.  Therefore we will limit the ways in which <tt class="docutils literal"><span class="pre">Derivation</span></tt> objects can
+be created.</p>
+<p>As a simple example, from the following two inference rules:</p>
+<blockquote>
+<ul class="simple">
+<li>for all <tt class="docutils literal"><span class="pre">F</span></tt>, <tt class="docutils literal"><span class="pre">G</span></tt> and <tt class="docutils literal"><span class="pre">H</span></tt>, if <tt class="docutils literal"><span class="pre">G</span> <span class="pre">&lt;-&gt;</span> <span class="pre">H</span></tt> holds, then <tt class="docutils literal"><span class="pre">(F</span> <span class="pre">\/</span> <span class="pre">G)</span> <span class="pre">&lt;-&gt;</span> <span class="pre">(F</span>
+<span class="pre">\/</span> <span class="pre">H)</span></tt> holds</li>
+<li>for all <tt class="docutils literal"><span class="pre">P</span></tt> and <tt class="docutils literal"><span class="pre">Q</span></tt>, if both <tt class="docutils literal"><span class="pre">P</span></tt> and <tt class="docutils literal"><span class="pre">P</span> <span class="pre">&lt;-&gt;</span> <span class="pre">Q</span></tt> hold, then <tt class="docutils literal"><span class="pre">Q</span></tt>
+holds</li>
+</ul>
+</blockquote>
+<p>we can derive the following so-called derived inference rule:</p>
+<blockquote>
+<ul class="simple">
+<li>for all <tt class="docutils literal"><span class="pre">F</span></tt>, <tt class="docutils literal"><span class="pre">G</span></tt>, and <tt class="docutils literal"><span class="pre">H</span></tt>, if both <tt class="docutils literal"><span class="pre">F</span> <span class="pre">\/</span> <span class="pre">G</span></tt> and <tt class="docutils literal"><span class="pre">G</span> <span class="pre">&lt;-&gt;</span> <span class="pre">H</span></tt> hold,
+then <tt class="docutils literal"><span class="pre">F</span> <span class="pre">\/</span> <span class="pre">H</span></tt> holds</li>
+</ul>
+</blockquote>
+<p>For now the only function that results in a Derivation is <tt class="docutils literal"><span class="pre">interpretProof</span></tt>:</p>
+<pre class="literal-block">
+&gt; interpretProof :: Proof -&gt; Either String Derivation
+</pre>
+<p>This function basically implements the Ghilbert proof verification algorithm,
+with the DVRs computed just like Hmm does this for Metamath proofs.  
+If the <tt class="docutils literal"><span class="pre">Proof</span></tt> is incorrect (i.e., if a <tt class="docutils literal"><span class="pre">RuleApp</span></tt> in it is inconsistent),
+then the result will be <tt class="docutils literal"><span class="pre">Left</span> <span class="pre">&quot;some</span> <span class="pre">error</span> <span class="pre">message&quot;</span></tt>, otherwise the result
+will be a <tt class="docutils literal"><span class="pre">Right</span></tt> value with the resulting <tt class="docutils literal"><span class="pre">Derivation</span></tt>.</p>
+<p>The simplest part of the Ghilbert proof algorithm is handling an
+<tt class="docutils literal"><span class="pre">Hypothesis</span></tt>:</p>
+<pre class="literal-block">
+&gt; interpretProof (Hypothesis expr) =
+&gt;       Right $ Derivation
+&gt;               {sourceRules = []
+&gt;               ,targetRule = mkInferenceRule (mkDVRSet []) [expr] expr
+&gt;               }
+</pre>
+<p>In words: any hypothesis proves the simplest possible inference rule, namely
+that from any expression we can derive any expression.</p>
+<p><tt class="docutils literal"><span class="pre">RuleApp</span></tt> is the interesting case:</p>
+<pre class="literal-block">
+&gt; interpretProof (RuleApp subproofs varExprs rule)
+</pre>
+<p>First we handle the inconsistent uses of <tt class="docutils literal"><span class="pre">RuleApp</span></tt>.  There needs to be
+exactly one subproof per rule hypothesis:</p>
+<pre class="literal-block">
+&gt;       | length (ruleHypotheses rule) /= length subproofs =
+&gt;               Left $ &quot;TODO: nice error message&quot;
+</pre>
+<p>TODO: for correctness,</p>
+<blockquote>
+<ul class="simple">
+<li>check that subderivationsOrErrors has only Right values</li>
+<li>check that substitutionsOrErrors has only Right values</li>
+<li>check that substitution has no duplicate keys</li>
+</ul>
+</blockquote>
+<p>If all of the above is correct, then the resulting <tt class="docutils literal"><span class="pre">Derivation</span></tt></p>
+<pre class="literal-block">
+&gt;       | True =
+&gt;               Right $ Derivation
+</pre>
+<p>has as its source rules, the current inference rule, together with those of
+its subderivations:</p>
+<pre class="literal-block">
+&gt;                       {sourceRules = rule : concat (map sourceRules subderivations)
+</pre>
+<p>From the <tt class="docutils literal"><span class="pre">RuleApp</span></tt> <tt class="docutils literal"><span class="pre">Proof</span></tt> we can derive that the conclusion of the rule
+(after substitution) follows from all hypotheses of all subproofs:</p>
+<pre class="literal-block">
+&gt;                       ,targetRule = let
+&gt;                               dvrs = mkDVRSet [] --TODO: implement
+&gt;                               hypotheses = concat $ map (ruleHypotheses . targetRule) subderivations
+&gt;                               conclusion = substApply substitution (ruleConclusion rule)
+&gt;                        in mkInferenceRule dvrs hypotheses conclusion
+&gt;                       }
+</pre>
+<p>In the above we used the following definitions:</p>
+<pre class="literal-block">
+&gt;       where
+&gt;               subderivationsOrErrors = map interpretProof subproofs
+&gt;               subderivations = map (\(Right x) -&gt; x) subderivationsOrErrors
+&gt;
+&gt;               subconclusions = map (ruleConclusion . targetRule) subderivations
+&gt;
+&gt;               substitutionsOrErrors :: [Either String Substitution]
+&gt;               substitutionsOrErrors = zipWith findSubstitution
+&gt;                                               (ruleHypotheses rule) subconclusions
+&gt;
+&gt;               substitution :: Substitution
+&gt;               substitution = fromRight $ substConcat
+&gt;                                       ( Substitution (zip (ruleLocalVars rule) varExprs)
+&gt;                                       : map (\(Right x) -&gt; x) substitutionsOrErrors
+&gt;                                       )
+&gt;                       --Note that no substitution key duplication is possible
+&gt;                       --here, so we can use fromRight
+</pre>
+<p>Here the 'rule local variables' are those that only occur in its conclusion,
+and not in its hypotheses:</p>
+<pre class="literal-block">
+&gt; ruleLocalVars :: InferenceRule -&gt; [VarName]
+&gt; ruleLocalVars rule =
+&gt;       nub (varsOf (ruleConclusion rule))
+&gt;       \\ concat (map varsOf (ruleHypotheses rule))
+</pre>
+<p>See the appendix for the substitution functions.</p>
+<p>This completes the implementation of the proof algorithm.</p>
+<p>Two <tt class="docutils literal"><span class="pre">Derivation</span></tt> objects are equal (under <tt class="docutils literal"><span class="pre">Eq</span></tt>) iff they map the same <em>set</em>
+of <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> to the same <tt class="docutils literal"><span class="pre">InferenceRule</span></tt>.  This implies that a
+<tt class="docutils literal"><span class="pre">Derivation</span></tt> is independent of the <tt class="docutils literal"><span class="pre">Proof</span></tt> that was used to create it.</p>
+<p>Open Issue. We could also make it possible to combine <tt class="docutils literal"><span class="pre">Derivation</span></tt> objects:</p>
+<pre class="literal-block">
+&lt; combineDerivation :: Derivation -&gt; Derivation -&gt; Derivation
+</pre>
+<p>This takes the second derivation, removes from its <tt class="docutils literal"><span class="pre">sourceRules</span></tt> the
+<tt class="docutils literal"><span class="pre">targetRule</span></tt> of the first derivation, and adds to its sourceRules the
+<tt class="docutils literal"><span class="pre">sourceRules</span></tt> of the first derivation.  Perhaps it sounds difficult, but
+basically this 'clicks together' derivations.</p>
+<p>This <tt class="docutils literal"><span class="pre">combine</span></tt> operator is theoretically not necessary, since it is also
+possible to have a similar operator at the <tt class="docutils literal"><span class="pre">Proof</span></tt> level, and then
+<tt class="docutils literal"><span class="pre">interpretProof</span></tt> creates the desired <tt class="docutils literal"><span class="pre">Derivation</span></tt>.  However, this requires
+one of the following:</p>
+<blockquote>
+<ul class="simple">
+<li>Either a client of this module has to remember a <tt class="docutils literal"><span class="pre">Proof</span></tt> for each
+<tt class="docutils literal"><span class="pre">Derivation</span></tt>;</li>
+<li>Or this module makes a <tt class="docutils literal"><span class="pre">Proof</span></tt> part of each <tt class="docutils literal"><span class="pre">Derivation</span></tt>.</li>
+</ul>
+</blockquote>
+<p>Frankly I don't really like any of the three alternatives.  The best
+alternative might be the first bullet above: implement the <tt class="docutils literal"><span class="pre">combine</span></tt>
+functionality outside of this core module, and keep <tt class="docutils literal"><span class="pre">Derivation</span></tt> and
+<tt class="docutils literal"><span class="pre">Proof</span></tt> separate.  But I haven't decided yet.  (End Open Issue.)</p>
+</div>
+<div class="section" id="weakening">
+<h1><a name="weakening">Weakening</a></h1>
+<p>Until now we've not been complete, in the technical sense: it is not possible
+to create every 'true' <tt class="docutils literal"><span class="pre">Derivation</span></tt> through <tt class="docutils literal"><span class="pre">interpretProof</span></tt>.  The reason is
+that <tt class="docutils literal"><span class="pre">interpretProof</span></tt> computes the &quot;strongest&quot; inference rule that is proven
+by the given Proof.  To do proper theorem verification à la Ghilbert, we need
+to be able to weaken a given derivation.</p>
+<p>First, to determine the relationship between inference rules, we introduce</p>
+<pre class="literal-block">
+&lt; (==&gt;) :: InferenceRule -&gt; InferenceRule -&gt; Bool
+</pre>
+<p>Basically <tt class="docutils literal"><span class="pre">i</span> <span class="pre">==&gt;</span> <span class="pre">j</span></tt> (&quot;<tt class="docutils literal"><span class="pre">i</span></tt> is at least as strong as <tt class="docutils literal"><span class="pre">j</span></tt>&quot;) iff <tt class="docutils literal"><span class="pre">i</span></tt> and
+<tt class="docutils literal"><span class="pre">j</span></tt> have the same conclusion, and if the DVRs and hypotheses of <tt class="docutils literal"><span class="pre">i</span></tt> are a
+subset (under (&lt;==&gt;)) of those of <tt class="docutils literal"><span class="pre">j</span></tt>.</p>
+<p>Now we need the following two additional ways to create <tt class="docutils literal"><span class="pre">Derivations</span></tt>:</p>
+<pre class="literal-block">
+&lt; strengthenSourceRules :: InferenceRule -&gt; Derivation -&gt; Derivation
+&lt; weakenTargetRule :: InferenceRule -&gt; Derivation -&gt; Derivation
+</pre>
+<p><tt class="docutils literal"><span class="pre">strengthenSourceRule</span></tt> adds the given <tt class="docutils literal"><span class="pre">InferenceRule</span></tt> to the
+<tt class="docutils literal"><span class="pre">sourceRules</span></tt>, and removes any that are weaker (i.e., implied by it under
+(==&gt;)).  <tt class="docutils literal"><span class="pre">weakenTargetRule</span></tt> replaces the <tt class="docutils literal"><span class="pre">targetRule</span></tt> by the given
+<tt class="docutils literal"><span class="pre">InferenceRule</span></tt>, but only if the original rule implies the new one (otherwise
+an error occurs).</p>
+</div>
+<div class="section" id="appendix-helper-functions">
+<h1><a name="appendix-helper-functions">Appendix: helper functions</a></h1>
+<p>This appendix implements auxiliary functionality.</p>
+<div class="section" id="expressions">
+<h2><a name="expressions">Expressions</a></h2>
+<p>The variables occurring in an expression are easily computed:</p>
+<pre class="literal-block">
+&gt; varsOf :: Expression -&gt; [VarName]
+&gt; varsOf (Var v) = [v]
+&gt; varsOf (App _c exprs) = concat $ map varsOf exprs
+</pre>
+<p>(Note that we do not remove duplicates here; each caller is responsible for
+that.)</p>
+</div>
+<div class="section" id="substitutions">
+<h2><a name="substitutions">Substitutions</a></h2>
+<p>A substitution describes how to map variables to expressions:</p>
+<pre class="literal-block">
+&gt; data Substitution = Substitution [(VarName, Expression)]
+&gt;       deriving Show
+</pre>
+<p>Apply a substitution is simple:</p>
+<pre class="literal-block">
+&gt; substApply :: Substitution -&gt; Expression -&gt; Expression
+&gt; substApply s&#64;(Substitution m) (Var v) = case lookup v m of
+&gt;                               Just expr -&gt; expr
+&gt;                               Nothing -&gt; error $ &quot;could not find &quot; ++ show v ++ &quot; in &quot; ++ show s
+&gt; substApply s (App c exprs) = App c (map (substApply s) exprs)
+</pre>
+<p>It is equally simple to find a substitution from one expression to another:</p>
+<pre class="literal-block">
+&gt; findSubstitution :: Expression -&gt; Expression -&gt; Either String Substitution
+&gt; findSubstitution (Var v) expr = Right $ Substitution [(v, expr)]
+&gt; findSubstitution expr1&#64;(App _ _) expr2&#64;(Var _) =
+&gt;       Left $ &quot;cannot match &quot; ++ show expr1 ++ &quot; and &quot; ++ show expr2
+&gt; findSubstitution expr1&#64;(App c1 exprs1) expr2&#64;(App c2 exprs2)
+&gt;       | c1 /= c2 =
+&gt;               Left $ &quot;cannot match operators of &quot; ++ show expr1 ++ &quot; and &quot; ++ show expr2
+&gt;       | length exprs1 /= length exprs2 =
+&gt;               Left $ &quot;different arity in &quot; ++ show expr1 ++ &quot; and &quot; ++ show expr2
+&gt;       | not allOk =
+&gt;               Left $ &quot;no substitution found from &quot; ++ show expr1 ++ &quot; to &quot; ++ show expr2
+&gt;               --TODO: add the Left values from substitutionsOrErrors
+&gt;       | True =
+&gt;               substitutionOrError
+&gt;               --TODO: if Left, add a Left error message saying which substitution is impossible
+&gt;       where
+&gt;               substitutionsOrErrors = zipWith findSubstitution exprs1 exprs2
+&gt;               allOk = allRight substitutionsOrErrors
+&gt;               substitutionOrError = substConcat $ map (\(Right x) -&gt; x) substitutionsOrErrors
+</pre>
+<p>For now we implement <tt class="docutils literal"><span class="pre">substConcat</span></tt> in a very simple way:</p>
+<pre class="literal-block">
+&gt; substConcat :: [Substitution] -&gt; Either String Substitution
+&gt; substConcat = Right . Substitution . concat . map (\(Substitution m) -&gt; m)
+</pre>
+<p>TODO: check for key duplication!</p>
+</div>
+<div class="section" id="error-messages">
+<h2><a name="error-messages">Error messages</a></h2>
+<pre class="literal-block">
+&gt; allRight :: [Either a b] -&gt; Bool
+&gt; allRight [] = True
+&gt; allRight (Left _ : _) = False
+&gt; allRight (Right _ : rest) = allRight rest
+</pre>
+</div>
+<div class="section" id="either">
+<h2><a name="either">Either</a></h2>
+<pre class="literal-block">
+&gt; fromRight :: Either a b -&gt; b
+&gt; fromRight (Right b) = b
+&gt; fromRight (Left _a) = error &quot;cannot apply fromRight to a Left value&quot;
+</pre>
+</div>
+</div>
+</div>
+<hr class="docutils footer" />
+<div class="footer">
+<a class="reference" href="HghCore.lhs">View document source</a>.
+Generated on: 2006-11-03 10:29 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+</div>
+</body>
+</html>
