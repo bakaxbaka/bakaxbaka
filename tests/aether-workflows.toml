@@ -1,0 +1,191 @@
+# Aether Agent Workflows Configuration
+# This file documents all available workflows for Aether
+# Copy these workflow definitions into Replit's Workflows pane
+
+[workflows]
+runButton = "Start Application"
+
+# ============================================
+# WORKFLOW 1: Start Aether (Default)
+# ============================================
+[[workflows.workflow]]
+name = "Start Application"
+description = "Start Aether - Run frontend and backend with brainstorming"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+# ============================================
+# WORKFLOW 2: Export Aether Complete
+# ============================================
+[[workflows.workflow]]
+name = "Export Aether"
+description = "Export complete Aether (database, personality, code) for migration"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash export-aether.sh"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '✅ Export complete. Download folder from /tmp/aether_export_*'"
+
+# ============================================
+# WORKFLOW 3: Database Export Only
+# ============================================
+[[workflows.workflow]]
+name = "Export Database Backup"
+description = "Export database backup for quick migration"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pg_dump \"$DATABASE_URL\" > /tmp/aether_db_backup_$(date +%Y%m%d_%H%M%S).sql"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '✅ Database backed up. Download from Files panel.'"
+
+# ============================================
+# WORKFLOW 4: Verify System Health
+# ============================================
+[[workflows.workflow]]
+name = "Verify Setup"
+description = "Check Aether database and system health"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '🔍 PostgreSQL Status:' && pg_isready"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '🧠 Aether Personality:' && psql \"$DATABASE_URL\" -c \"SELECT COUNT(*) FROM aether_personality;\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '📨 Total Messages:' && psql \"$DATABASE_URL\" -c \"SELECT COUNT(*) FROM messages;\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '✅ All systems healthy!'"
+
+# ============================================
+# WORKFLOW 5: Build Project
+# ============================================
+[[workflows.workflow]]
+name = "Build Project"
+description = "Build Aether for production"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+# ============================================
+# WORKFLOW 6: Install Dependencies
+# ============================================
+[[workflows.workflow]]
+name = "Install Dependencies"
+description = "Install all Node.js dependencies"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+# ============================================
+# WORKFLOW 7: Quick Start
+# ============================================
+[[workflows.workflow]]
+name = "Quick Start"
+description = "Install + build + ready to start"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '✅ Ready! Click Start Application'"
+
+# ============================================
+# WORKFLOW 8: Performance Metrics
+# ============================================
+[[workflows.workflow]]
+name = "Check Performance"
+description = "Display Aether's learning performance"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '📈 AETHER PERFORMANCE METRICS' && psql \"$DATABASE_URL\" -c \"SELECT 'Brainstorm Rounds: ' || brainstormCount, 'Integrity: ' || integrityScore, 'Warmth: ' || warmthScore, 'Wisdom: ' || wisdomScore FROM aether_personality LIMIT 1;\""
+
+# ============================================
+# WORKFLOW 9: Database Reset (Warning!)
+# ============================================
+[[workflows.workflow]]
+name = "Reset Database"
+description = "⚠️  DROP and recreate database (DELETE ALL DATA)"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '⚠️  WARNING: This deletes ALL Aether data' && (dropdb aether_local || true) && createdb aether_local && echo '✅ Database reset'"
+
+# ============================================
+# WORKFLOW 10: Restore Database
+# ============================================
+[[workflows.workflow]]
+name = "Restore from Backup"
+description = "Restore database from aether_database.sql"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "psql \"$DATABASE_URL\" < aether_database.sql && echo '✅ Restore complete'"
+
+# ============================================
+# WORKFLOW 11: Personality Snapshot
+# ============================================
+[[workflows.workflow]]
+name = "Export Personality Snapshot"
+description = "Export Aether's current personality data as JSON"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "psql \"$DATABASE_URL\" -c \"SELECT row_to_json(t) FROM aether_personality t;\" > /tmp/aether_personality_$(date +%Y%m%d_%H%M%S).json && echo '✅ Personality snapshot saved'"
+
+# ============================================
+# WORKFLOW 12: Learning History
+# ============================================
+[[workflows.workflow]]
+name = "View Learning History"
+description = "Display Aether's recent learning events"
+mode = "sequential"
+author = "aether"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo '📚 AETHER LEARNING HISTORY' && psql \"$DATABASE_URL\" -c \"SELECT (learningHistory) FROM aether_personality LIMIT 1;\" | head -50"
