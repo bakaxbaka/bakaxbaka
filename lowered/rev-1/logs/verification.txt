@@ -1,0 +1,19 @@
+rev-1 SHA256::Transform verification
+Source pin: bakaxbaka/bakaxbaka @ 5152c87a0d607a68432ef1bb2daf1a1a7a14bd33
+Archive cross-check: SHA256 Transform source files sha.cpp, sha.h, key.h, bignum.h, util.h have blob IDs matching the pinned repository copies.
+
+Lowered C99 compile:
+  gcc -std=c99 -Wall -Wextra -Werror -O2 -c lowered/rev-1/sha256_transform.c -o sha256_transform.o
+  PASS
+
+NIST known-answer test:
+  gcc -std=c99 -Wall -Wextra -Werror -O2 lowered/rev-1/sha256_transform.c lowered/rev-1/tests/test_sha256_transform.c -o test_sha256_transform
+  ./test_sha256_transform
+  PASS: NIST SHA-256 digest for ASCII abc
+
+Original-source differential test:
+  g++ -std=c++98 -w -Ivalidation/rev-1 -c validation/rev-1/sha.cpp -o original_sha.o
+  g++ -std=c++98 -Wall -Wextra -Werror -O2 -Ivalidation/rev-1 lowered/rev-1/tests/compare_with_reference.cpp original_sha.o sha256_transform.o -o compare_reference
+  ./compare_reference
+  PASS: 100 deterministic 32-bit states / 512-bit blocks match original CryptoPP::SHA256::Transform.
+  Note: warnings were suppressed only when compiling the historical reference source; the lowered C99 target used -Wall -Wextra -Werror.
