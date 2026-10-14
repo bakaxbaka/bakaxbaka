@@ -1,0 +1,14 @@
+{
+  "phase": "key_boundary_blocked",
+  "completed_functions": [
+    "CryptoPP::SHA256::Transform (rev-1/sha.cpp:141-164)"
+  ],
+  "blocked_functions": [
+    "CKey::Sign (rev-1/key.h:121-131): C++ std::vector / CKey / uint256 boundary requires an unapproved C ABI and ownership mapping; ECDSA_sign remains external."
+  ],
+  "open_questions": [
+    "Whether to allow a separate C ABI adapter for the C++ key wrappers; otherwise stop at the documented OpenSSL boundary."
+  ],
+  "last_checkpoint": "SHA256::Transform passed strict C99 compilation, the NIST abc KAT, and 100 deterministic comparisons to the original source. Key boundary documented; original sources unchanged.",
+  "next_function": "CKey::Sign (rev-1/key.h:121-131), blocked pending scope decision."
+}
